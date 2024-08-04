@@ -26,4 +26,31 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
+    if username in users and users[username] == password:
+            session['username'] = username
+            return redirect(url_for('tracker'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
+
+@app.route('/tracker', methods=['GET', 'POST'])
+def tracker():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        amount = request.form['amount']
+        description = request.form['description']
+        username = session['username']
+        if username not in budgets:
+            budgets[username] = []
+        budgets[username].append({'amount': amount, 'description': description})
+    
     user_budgets = budgets.get(session['username'], [])
+    return render_template('tracker.html', budgets=user_budgets)
+
+if __name__ == '__main__':
+    app.run(debug=True)
